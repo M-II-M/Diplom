@@ -1,12 +1,22 @@
-from flask import Flask
-
-app = Flask(__name__)
-
-
-@app.route('/')
-def hello_world():
-    return 'Hello World!'
+# from flask import Flask
+import whisper
 
 
-if __name__ == '__main__':
-    app.run()
+# app = Flask(__name__)
+#
+#
+# @app.route('/')
+# def index():
+#     model = whisper.load_model("large")
+#     result = model.transcribe("test.ogg", language="ru")
+#     print(result["text"])
+#     return 'Diplom'
+#
+#
+# if __name__ == "__main__":
+#     app.run(debug=True)
+
+
+model = whisper.load_model("large")
+result = model.transcribe("test.ogg", language="ru")
+print(result["text"])
