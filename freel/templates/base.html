@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <link type="text/css" href="{{ url_for('static', filename='css/styles.css') }}" rel="stylesheet" />
+      {% if title %}
+      <title>{{ title }}</title>
+      {% else %}
+      <title>FreelHelper</title>
+      {% endif %}
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    </head>
+    <body>
+
+        <div class="header">
+          <a href="{{ url_for('static', filename='img/logo.png')}}" class="logo">FreelHelper</a>
+          <div class="header-right">
+            <a class="active" href="/">Главная</a>
+            <a href="#contact">Профиль</a>
+            <a href="{{ url_for('login_page') }}">Авторизация</a>
+          </div>
+        </div>
+
+        {% block content %}{% endblock %}
+    </body>
+</html>

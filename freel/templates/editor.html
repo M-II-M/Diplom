@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Uploads</title>
+</head>
+<body>
+
+ <form method="post">
+    {{ form.title() }}
+    {{ form.body() }}
+    {{ form.submit() }}
+</form>
+ {{ ckeditor.load(pkg_type="full-all") }}
+ {{ ckeditor.config(name='body') }}
+
+</body>
+</html>

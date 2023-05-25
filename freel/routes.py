@@ -1,42 +1,13 @@
 import os
 import uuid
 
-from flask import Flask, render_template, request, flash, redirect, url_for
-from flask_ckeditor import CKEditor
-from flask_login import LoginManager
-from flask_sqlalchemy import SQLAlchemy
+from flask import render_template, request, flash, redirect, url_for
+from flask_login import login_user, login_required, logout_user, current_user
+from werkzeug.security import generate_password_hash, check_password_hash
 
-from freel import forms
 from freel.DocView import DocView
-
-db = SQLAlchemy()
-# конфиг
-DATABASE = '/tmp/fhsite.db',
-DEBAG = True,
-SECRET_KEY = "powerful secretkey",
-WTF_CSRF_SECRET_KEY = "a csrf secret key"
-
-app = Flask(__name__)
-app.config.from_object(__name__)
-app.config.update(dict(DATABASE=os.path.join(app.root_path, 'flsite.db')))
-
-# лоигн
-login_manager = LoginManager(app)
-login_manager.login_view = 'login'
-login_manager.login_message = "Авторизуйтесь для доступа к закрытым страницам"
-login_manager.login_message_category = "success"
-
-# редактор
-ckeditor = CKEditor(app)
-app.config['UPLOAD_FOLDER'] = 'upload'
-
-ALLOWED_EXTENSIONS = {'docx'}
-
-
-def allowed_file(filename):
-    """ Функция проверки расширения файла(пока только docx) """
-    return '.' in filename and \
-           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+from freel import app, db, forms
+from freel.models import User
 
 
 @app.route("/", methods=["POST", "GET"])
@@ -46,18 +17,21 @@ def main_page():
 
 
 @app.route("/ready_template", methods=["POST", "GET"])
+@login_required
 def ready_template():
     """ Страница при выборе готового шаблона """
     return render_template("ready_template.html", )
 
 
 @app.route("/prepare_template", methods=["POST", "GET"])
+@login_required
 def prepare_template():
     """ Страница для подготовки шаблона """
     return render_template("prepare_template.html", )
 
 
 @app.route("/editor", methods=["POST", "GET"])
+@login_required
 def doc_editor():
     """ Редактор документа """
     form = forms.SelectAudioForm()
@@ -69,7 +43,8 @@ def doc_editor():
 
 
 @app.route('/doc', methods=["POST", "GET"])
-def index():
+@login_required
+def doc():
     """ Преобразование документа """
     form = forms.WordViewForm()
 
@@ -81,6 +56,7 @@ def index():
 
 
 @app.route('/save-record', methods=['POST'])
+@login_required
 def save_record():
     """ Запись аудио """
     # check if the post request has the file part
@@ -101,6 +77,7 @@ def save_record():
 
 
 @app.route('/upload', methods=["POST", "GET"])
+@login_required
 def upload():
     """ Обработчик закгрузки файлов """
     if request.method == 'POST':
@@ -126,9 +103,68 @@ def upload():
 
 
 @app.route('/test2', methods=["POST", "GET"])
+@login_required
 def test2():
     return render_template("test.html")
 
 
-if __name__ == "__main__":
-    app.run(debug=True)
+@app.route('/login', methods=['GET', 'POST'])
+def login_page():
+    if current_user.is_authenticated:
+        return redirect(url_for('main_page'))
+
+    form = forms.LoginForm()
+    login = form.login.data
+    password = form.password.data
+
+    if login and password:
+        user = User.query.filter_by(login=login).first()
+        if user and check_password_hash(user.password, password):
+            login_user(user)
+            # next_page = request.args.get('next')
+            return redirect(url_for('main_page'))
+
+        else:
+            flash('Неверный логин или пароль')
+    else:
+        flash('Пожалуйста, заполните поля')
+
+    return render_template('login.html', form=form)
+
+
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    form = forms.RegisterForm()
+    login = form.login.data
+    password = form.password.data
+    password2 = form.confirm.data
+
+    if request.method == 'POST':
+        if not (login or password or password2):
+            flash('Пожалуйста, заполните поля')
+        elif password != password2:
+            flash('Парольи не совпадают!')
+        else:
+            hash_pwd = generate_password_hash(password)
+            new_user = User(login=login, password=hash_pwd)
+            db.session.add(new_user)
+            db.session.commit()
+
+            return redirect(url_for('login_page'))
+
+    return render_template('register.html', form=form)
+
+
+@app.route('/logout', methods=['GET', 'POST'])
+@login_required
+def logout():
+    logout_user()
+    return redirect(url_for('hello_world'))
+
+
+@app.after_request
+def redirect_to_signin(response):
+    if response.status_code == 401:
+        return redirect(url_for('login_page') + '?next=' + request.url)
+
+    return
