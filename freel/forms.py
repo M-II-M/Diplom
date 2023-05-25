@@ -5,9 +5,8 @@ from wtforms.validators import DataRequired
 
 
 class WordViewForm(FlaskForm):
-    title = StringField('Title')
     body = CKEditorField('Body')  # <--
-    submit = SubmitField('Submit')
+    submit = SubmitField('Перейти к речевому заполнению')
 
 
 class SelectAudioForm(FlaskForm):

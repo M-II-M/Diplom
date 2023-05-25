@@ -18,6 +18,7 @@ class User(db.Model, UserMixin):
 class Files(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     path = db.Column(db.String(255), nullable=False)
+    file_name = db.Column(db.String(255), nullable=False)
     file_type = db.Column(db.String(12), nullable=False)
     data = db.Column(db.DateTime(timezone=True))
 

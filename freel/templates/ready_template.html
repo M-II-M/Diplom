@@ -2,13 +2,17 @@
 
 {% block content %}
 
-<form action="{{url_for('upload')}}" method="POST" enctype="multipart/form-data">
+{% for cat, msg in get_flashed_messages(True) %}
+<div class="flash {{cat}}">{{msg}}</div>
+{% endfor %}
+
+<form action="{{url_for('upload_ready_template')}}" method="POST" enctype="multipart/form-data">
     <p><input type="file" name="file">
     <p><input type="submit" value="Загрузить">
 </form>
 
 {% if file %}
-    <h1>{{ full.filename }}</h1>
+    <h1>{{ file.filename }}</h1>
 {% endif %}
 
 

@@ -1,13 +1,14 @@
+from datetime import datetime
 import os
 import uuid
 
-from flask import render_template, request, flash, redirect, url_for
+from flask import render_template, request, flash, redirect, url_for, session
 from flask_login import login_user, login_required, logout_user, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 
 from freel.DocView import DocView
 from freel import app, db, forms
-from freel.models import User
+from freel.models import User, Files, UserTemplates, UserPreparation
 
 
 @app.route("/", methods=["POST", "GET"])
@@ -30,29 +31,18 @@ def prepare_template():
     return render_template("prepare_template.html", )
 
 
-@app.route("/editor", methods=["POST", "GET"])
+@app.route('/editor?<template_type>', methods=["POST", "GET"])
 @login_required
-def doc_editor():
-    """ Редактор документа """
-    form = forms.SelectAudioForm()
-    if form.validate_on_submit():
-        print(form.select_type.data)
-    else:
-        print(form.errors)
-    return render_template('editor.html', form=form)
-
-
-@app.route('/doc', methods=["POST", "GET"])
-@login_required
-def doc():
+def editor(template_type):
     """ Преобразование документа """
     form = forms.WordViewForm()
 
-    test = DocView('test.docx')
-    test.get_checkpoints()
+    # Отображение шаблона в редакторе
+    doc_view = DocView(session.get(template_type))
+    doc_view.word2html()
+    form.body.data = doc_view.html
 
-    form.body.data = test.interim_code
-    return render_template("editor.html", form=form)
+    return render_template("editor.html", form=form, data=template_type)
 
 
 @app.route('/save-record', methods=['POST'])
@@ -76,22 +66,40 @@ def save_record():
     return render_template("test.html")
 
 
-@app.route('/upload', methods=["POST", "GET"])
+@app.route('/upload_ready_template', methods=["POST", "GET"])
 @login_required
-def upload():
+def upload_ready_template():
     """ Обработчик закгрузки файлов """
     if request.method == 'POST':
         file = request.files['file']
-        # защита от пустых файлов
+        # Защита от пустых файлов
         if file.filename == '':
             flash('Файл не выбран')
             return redirect(request.url)
 
         if file:
             try:
+                # Сохранение файла в папку(имя папки соответсвует имени файла)
                 file_name = str(uuid.uuid4()) + ".docx"
-                full_file_name = os.path.join(app.config['UPLOAD_FOLDER'], file_name)
+                os.mkdir(os.path.join(app.config['UPLOAD_FOLDER'] + "\\" + file_name[0:-6]))
+                full_file_name = os.path.join(app.config['UPLOAD_FOLDER'] + "\\" + file_name[0:-6], file_name)
                 file.save(full_file_name)
+
+                # Сохранение шаблона в бд
+                save_template = Files(path=full_file_name,
+                                      file_name=file.filename,
+                                      file_type="template",
+                                      data=datetime.now())
+                db.session.add(save_template)
+                db.session.commit()
+
+                template_id = db.session.query(Files).filter(Files.path == full_file_name).one()
+                user_template = UserTemplates(user_id=current_user.get_id(),
+                                              template_id=template_id.id)
+                db.session.add(user_template)
+                db.session.commit()
+
+                session['ready_template'] = full_file_name
 
                 flash("Документ загружен", "success")
             except FileNotFoundError as e:
@@ -99,7 +107,68 @@ def upload():
         else:
             flash("Ошибка загрузки документа", "error")
 
+    return redirect(url_for('editor', template_type='ready_template'))
+
+
+@app.route('/template_processing?<template_type>', methods=["POST", "GET"])
+@login_required
+def template_processing(template_type):
+    """ Обработка шаблона из редактора"""
+    # Перезаписываем файл с использованием данных из редактора
+    if request.method == 'POST':
+        template_with_chekpoints = DocView(session.get(template_type))
+        template_with_chekpoints.word2html()
+        template_with_chekpoints.get_checkpoints()
+        template_with_chekpoints.save_interim_template_html()
+        template_with_chekpoints.save_interim_template_docx()
+    else:
+        print('barabuh')
+
     return redirect(url_for('ready_template'))
+
+
+@app.route('/upload_prepare_doc', methods=["POST", "GET"])
+@login_required
+def upload_prepare_doc():
+    """ Обработчик закгрузки файлов """
+    if request.method == 'POST':
+        file = request.files['file']
+        # Защита от пустых файлов
+        if file.filename == '':
+            flash('Файл не выбран')
+            return redirect(request.url)
+
+        if file:
+            try:
+                # Сохранение файла в папку(имя папки соответсвует имени файла)
+                file_name = str(uuid.uuid4()) + ".docx"
+                os.mkdir(os.path.join(app.config['UPLOAD_FOLDER'] + "\\" + file_name[0:-6]))
+                full_file_name = os.path.join(app.config['UPLOAD_FOLDER'] + "\\" + file_name[0:-6], file_name)
+                file.save(full_file_name)
+
+                # Сохранение шаблона в бд
+                save_template = Files(path=full_file_name,
+                                      file_name=file.filename,
+                                      file_type="prepare",
+                                      data=datetime.now())
+                db.session.add(save_template)
+                db.session.commit()
+
+                template_id = db.session.query(Files).filter(Files.path == full_file_name).one()
+                user_prepare_doc = UserPreparation(user_id=current_user.get_id(),
+                                                   template_id=template_id.id)
+                db.session.add(user_prepare_doc)
+                db.session.commit()
+
+                session['prepare_doc'] = full_file_name
+
+                flash("Документ загружен", "success")
+            except FileNotFoundError as e:
+                flash("Ошибка чтения файла", "error")
+        else:
+            flash("Ошибка загрузки документа", "error")
+
+    return redirect(url_for('editor', template_type='prepare_doc'))
 
 
 @app.route('/test2', methods=["POST", "GET"])
@@ -161,10 +230,9 @@ def logout():
     logout_user()
     return redirect(url_for('hello_world'))
 
-
-@app.after_request
-def redirect_to_signin(response):
-    if response.status_code == 401:
-        return redirect(url_for('login_page') + '?next=' + request.url)
-
-    return
+# @app.after_request
+# def redirect_to_signin(response):
+#     if response.status_code == 401:
+#         return redirect(url_for('login_page') + '?next=' + request.url)
+#
+#     return
