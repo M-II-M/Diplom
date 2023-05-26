@@ -7,6 +7,7 @@ from flask_login import login_user, login_required, logout_user, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 
 from freel.DocView import DocView
+from freel.TemplFelling import TemplFelling
 from freel import app, db, forms
 from freel.models import User, Files, UserTemplates
 
@@ -55,8 +56,19 @@ def ready_audio():
 @app.route("/filling_doc", methods=["POST", "GET"])
 @login_required
 def filling_doc():
+
     """ Заполнение шаблона """
-    return render_template("filling_doc.html", )
+    # print(session.get('checkpoints'))
+    # print(session.get('ready_template'))
+    # print(session.get('audio'))
+
+    filling = TemplFelling(session.get('ready_template'),
+                           session.get('checkpoints'),
+                           session.get('audio'))
+
+    filling.recognize()
+    filling.filling_doc()
+    return render_template("filling_doc.html", checkpoints=session.get('checkpoints'))
 
 
 @app.route('/editor?<template_type>', methods=["POST", "GET"])
@@ -221,7 +233,7 @@ def template_processing(template_type):
     if request.method == 'POST':
         template_with_chekpoints = DocView(session.get(template_type))
         template_with_chekpoints.word2html()
-        template_with_chekpoints.get_checkpoints()
+        session['checkpoints'] = template_with_chekpoints.get_checkpoints()
         template_with_chekpoints.save_interim_template_html()
         template_with_chekpoints.save_interim_template_docx()
 

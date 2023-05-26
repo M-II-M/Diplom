@@ -2,7 +2,10 @@
 
 {% block content %}
 
-
 <h1>PIZDEC</h1>
+
+{% for i in checkpoints %}
+    <p>{{ i }} {{ checkpoints[i] }}</p>
+{% endfor %}
 
 {% endblock %}

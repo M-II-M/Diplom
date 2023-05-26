@@ -113,10 +113,21 @@ function stopRecording() {
 }
 
 function createDownloadLink(blob) {
-    console.log(123)
+    var url = URL.createObjectURL(blob);
+	var au = document.createElement('audio');
+	var li = document.createElement('li');
+
+	au.controls = true;
+	au.src = url;
+
+	li.appendChild(au);
+
+    recordingsList.appendChild(li);
+
     var form = new FormData();
     form.append('audio_data', blob, 'data.wav');
     form.append('title', 'data.wav');
+
     //Chrome inspector shows that the post data includes a file and a title.
     $.ajax({
         type: 'POST',
@@ -126,7 +137,8 @@ function createDownloadLink(blob) {
         processData: false,
         contentType: false
         }).done(function(data) {
-            console.log(data);
+//            window.location.replace("http://127.0.0.1:5000/filling_doc");
         });
+
 
 }

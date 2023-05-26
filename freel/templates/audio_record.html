@@ -13,11 +13,13 @@
   	    <button id="pauseButton" disabled>Pause</button>
   	    <button id="stopButton" disabled>Stop</button>
     </div>
-    <div id="formats">Format: start recording to see sample rate</div>
   	    <p><strong>Recordings:</strong></p>
   	    <ol id="recordingsList"></ol>
 
     <script src="{{ url_for('static', filename='js/recorder.js') }}" ></script>
     <script src="{{ url_for('static', filename='js/app.js') }}" ></script>
 
+    <form action="{{ url_for('filling_doc') }}" target="_blank">
+        <button>Перейти к распознаванию</button>
+    </form>
 {% endblock %}
