@@ -38,6 +38,27 @@ def audio_choice():
     return render_template("audio_choice.html", )
 
 
+@app.route('/audio_record', methods=["POST", "GET"])
+@login_required
+def audio_record():
+    """ Запись аудио """
+    return render_template("audio_record.html")
+
+
+@app.route("/ready_audio", methods=["POST", "GET"])
+@login_required
+def ready_audio():
+    """ Страница при выборе готового аудио """
+    return render_template("ready_audio.html", )
+
+
+@app.route("/filling_doc", methods=["POST", "GET"])
+@login_required
+def filling_doc():
+    """ Заполнение шаблона """
+    return render_template("filling_doc.html", )
+
+
 @app.route('/editor?<template_type>', methods=["POST", "GET"])
 @login_required
 def editor(template_type):
@@ -60,12 +81,11 @@ def editor(template_type):
     return render_template("editor.html", form=form, template_type=template_type, desc=desc)
 
 
-@app.route('/audio_record', methods=["POST", "GET"])
+@app.route('/save_record', methods=["POST", "GET"])
 @login_required
-def audio_record():
-    """ Запись аудио """
+def save_record():
+    """ Сохранение записаного аудио """
     if request.method == "POST":
-        print("FORM DATA RECEIVED")
 
         # if "audio_data" not in request.files:
         #     return redirect(request.url)
@@ -75,13 +95,40 @@ def audio_record():
             return redirect(request.url)
 
         # Запись на сервер
-        file_name = session['ready_template'][0:-6] + ".mp3"
+        file_name = session.get('ready_template')[0:-6] + ".wav"
         file.save(file_name)
-        print(file_name)
 
         session['audio'] = file_name
 
-    return render_template("audio_record.html")
+    return redirect(url_for('filling_doc'))
+
+
+@app.route('/upload_ready_audio', methods=["POST", "GET"])
+@login_required
+def upload_ready_audio():
+    """ Обработчик закгрузки аудио """
+    if request.method == 'POST':
+        file = request.files['file']
+        # Защита от пустых файлов
+        if file.filename == '':
+            flash('Файл не выбран')
+            return redirect(request.url)
+
+        if file:
+            try:
+                # Сохранение файла в папку(имя папки соответсвует имени файла)
+                file_name = session.get('ready_template')[0:-6] + ".wav"
+                file.save(file_name)
+
+                session['audio'] = file_name
+
+                flash("Документ загружен", "success")
+            except FileNotFoundError as e:
+                flash("Ошибка чтения файла", "error")
+        else:
+            flash("Ошибка загрузки документа", "error")
+
+    return redirect(url_for('filling_doc'))
 
 
 @app.route('/upload_ready_template', methods=["POST", "GET"])
@@ -185,6 +232,8 @@ def template_processing(template_type):
                                           template_id=template_id.id)
             db.session.add(user_template)
             db.session.commit()
+
+            session['ready_template'] = session['prepare_doc']
 
     else:
         print('barabuh')
