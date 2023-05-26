@@ -8,7 +8,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 
 from freel.DocView import DocView
 from freel import app, db, forms
-from freel.models import User, Files, UserTemplates, UserPreparation
+from freel.models import User, Files, UserTemplates
 
 
 @app.route("/", methods=["POST", "GET"])
@@ -31,39 +31,57 @@ def prepare_template():
     return render_template("prepare_template.html", )
 
 
+@app.route("/audio_choice", methods=["POST", "GET"])
+@login_required
+def audio_choice():
+    """ Выбор типа загрузки аудио """
+    return render_template("audio_choice.html", )
+
+
 @app.route('/editor?<template_type>', methods=["POST", "GET"])
 @login_required
 def editor(template_type):
     """ Преобразование документа """
     form = forms.WordViewForm()
 
+    desc = ''
+    if template_type == 'ready_template':
+        desc = "Вы можете изменить шаблон или сразу перейти к речевому заполнению"
+    elif template_type == 'prepare_doc':
+        desc = "Подготовте шаблон и переходите к речевому заполнению"
+
+    # TODO написать гайд по выделению
+
     # Отображение шаблона в редакторе
     doc_view = DocView(session.get(template_type))
     doc_view.word2html()
     form.body.data = doc_view.html
 
-    return render_template("editor.html", form=form, data=template_type)
+    return render_template("editor.html", form=form, template_type=template_type, desc=desc)
 
 
-@app.route('/save-record', methods=['POST'])
+@app.route('/audio_record', methods=["POST", "GET"])
 @login_required
-def save_record():
+def audio_record():
     """ Запись аудио """
-    # check if the post request has the file part
-    if 'file' not in request.files:
-        flash('No file part')
-        return redirect(request.url)
-    file = request.files['file']
-    # if user does not select file, browser also
-    # submit an empty part without filename
-    # защита от пустых файлов
-    if file.filename == '':
-        flash('No selected file')
-        return redirect(request.url)
-    file_name = str(uuid.uuid4()) + ".mp3"
-    full_file_name = os.path.join(app.config['UPLOAD_FOLDER'], file_name)
-    file.save(full_file_name)
-    return render_template("test.html")
+    if request.method == "POST":
+        print("FORM DATA RECEIVED")
+
+        # if "audio_data" not in request.files:
+        #     return redirect(request.url)
+
+        file = request.files["audio_data"]
+        if file.filename == "":
+            return redirect(request.url)
+
+        # Запись на сервер
+        file_name = session['ready_template'][0:-6] + ".mp3"
+        file.save(file_name)
+        print(file_name)
+
+        session['audio'] = file_name
+
+    return render_template("audio_record.html")
 
 
 @app.route('/upload_ready_template', methods=["POST", "GET"])
@@ -110,23 +128,6 @@ def upload_ready_template():
     return redirect(url_for('editor', template_type='ready_template'))
 
 
-@app.route('/template_processing?<template_type>', methods=["POST", "GET"])
-@login_required
-def template_processing(template_type):
-    """ Обработка шаблона из редактора"""
-    # Перезаписываем файл с использованием данных из редактора
-    if request.method == 'POST':
-        template_with_chekpoints = DocView(session.get(template_type))
-        template_with_chekpoints.word2html()
-        template_with_chekpoints.get_checkpoints()
-        template_with_chekpoints.save_interim_template_html()
-        template_with_chekpoints.save_interim_template_docx()
-    else:
-        print('barabuh')
-
-    return redirect(url_for('ready_template'))
-
-
 @app.route('/upload_prepare_doc', methods=["POST", "GET"])
 @login_required
 def upload_prepare_doc():
@@ -154,12 +155,6 @@ def upload_prepare_doc():
                 db.session.add(save_template)
                 db.session.commit()
 
-                template_id = db.session.query(Files).filter(Files.path == full_file_name).one()
-                user_prepare_doc = UserPreparation(user_id=current_user.get_id(),
-                                                   template_id=template_id.id)
-                db.session.add(user_prepare_doc)
-                db.session.commit()
-
                 session['prepare_doc'] = full_file_name
 
                 flash("Документ загружен", "success")
@@ -171,10 +166,30 @@ def upload_prepare_doc():
     return redirect(url_for('editor', template_type='prepare_doc'))
 
 
-@app.route('/test2', methods=["POST", "GET"])
+@app.route('/template_processing?<template_type>', methods=["POST", "GET"])
 @login_required
-def test2():
-    return render_template("test.html")
+def template_processing(template_type):
+    """ Обработка шаблона из редактора"""
+    # Перезаписываем файл с использованием данных из редактора
+    if request.method == 'POST':
+        template_with_chekpoints = DocView(session.get(template_type))
+        template_with_chekpoints.word2html()
+        template_with_chekpoints.get_checkpoints()
+        template_with_chekpoints.save_interim_template_html()
+        template_with_chekpoints.save_interim_template_docx()
+
+        # если документ подготовили, записать его в шаблоны
+        if template_type == 'prepare_doc':
+            template_id = db.session.query(Files).filter(Files.path == session['prepare_doc']).one()
+            user_template = UserTemplates(user_id=current_user.get_id(),
+                                          template_id=template_id.id)
+            db.session.add(user_template)
+            db.session.commit()
+
+    else:
+        print('barabuh')
+
+    return redirect(url_for('audio_choice'))
 
 
 @app.route('/login', methods=['GET', 'POST'])

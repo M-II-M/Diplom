@@ -23,12 +23,6 @@ class Files(db.Model):
     data = db.Column(db.DateTime(timezone=True))
 
 
-class UserPreparation(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column('user_id', db.ForeignKey("user.id"))
-    file_id = db.Column('file_id', db.ForeignKey("files.id"))
-
-
 class UserTemplates(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column('user_id', db.ForeignKey("user.id"))

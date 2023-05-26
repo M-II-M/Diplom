@@ -1,0 +1,10 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<h2 align="center">Хотите продиктовать текст или у Вас есть готовая аудиозапись/видео</h2>
+
+<a href="/audio_record"> Продиктовать текст</a>
+<a href="{{ url_for('audio_record') }}"> Загрузить аудиозапись/видео</a>
+
+{% endblock %}
