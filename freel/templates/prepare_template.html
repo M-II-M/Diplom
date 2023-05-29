@@ -6,9 +6,29 @@
 <div class="flash {{cat}}">{{msg}}</div>
 {% endfor %}
 
-<form action="{{url_for('upload_prepare_doc')}}" method="POST" enctype="multipart/form-data">
+<form class="prepareTemplateForm" action="{{url_for('upload_prepare_doc')}}" method="POST" enctype="multipart/form-data">
     <p><input type="file" name="file">
     <p><input type="submit" value="Загрузить">
 </form>
 
 {% endblock %}
+
+<style>
+	* {
+		margin: 0
+	}
+	body {
+		background-color:#e3f2fd;
+	}
+	.prepareTemplateForm{
+		background-color:white;
+		width: max-content;
+		padding: 32px;
+		height: max-content;
+		position: relative;
+		margin: 0 auto;
+		top: 45%;
+		-ms-transform: translateY(-50%);
+		transform: translateY(-50%);
+	}
+</style>

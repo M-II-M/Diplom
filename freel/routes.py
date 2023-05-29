@@ -18,6 +18,25 @@ def main_page():
     return render_template("main_page.html", )
 
 
+@app.route("/profile", methods=["POST", "GET"])
+@login_required
+def profile():
+    """ Профиль """
+
+    user_files = {}
+
+    user_templates = db.session.query(UserTemplates, Files)\
+        .filter(UserTemplates.user_id == current_user.get_id())\
+        .filter(Files.id == UserTemplates.template_id).all()
+
+    for i in user_templates:
+        user_files[i.Files.file_name] = i.Files.path
+
+    print(user_files)
+
+    return render_template("profile.html", user_files=user_files)
+
+
 @app.route("/ready_template", methods=["POST", "GET"])
 @login_required
 def ready_template():
@@ -58,16 +77,19 @@ def ready_audio():
 def filling_doc():
 
     """ Заполнение шаблона """
-    # print(session.get('checkpoints'))
-    # print(session.get('ready_template'))
-    # print(session.get('audio'))
-
     filling = TemplFelling(session.get('ready_template'),
                            session.get('checkpoints'),
                            session.get('audio'))
 
     filling.recognize()
     filling.filling_doc()
+
+    view_html = DocView(filling.filling_doc())
+    view_html.word2html()
+
+    form = forms.WordViewForm()
+    form.body.data = view_html.html
+
     return render_template("filling_doc.html", checkpoints=session.get('checkpoints'))
 
 
@@ -304,7 +326,7 @@ def register():
 @login_required
 def logout():
     logout_user()
-    return redirect(url_for('hello_world'))
+    return redirect(url_for('main_page'))
 
 # @app.after_request
 # def redirect_to_signin(response):

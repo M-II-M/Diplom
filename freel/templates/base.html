@@ -13,10 +13,10 @@
     <body>
 
         <div class="header">
-          <a href="{{ url_for('static', filename='img/logo.png')}}" class="logo">FreelHelper</a>
+		<a href="{{ url_for('static', filename='img/logo.png')}}" class="logo">FreelHelper</a>
           <div class="header-right">
             <a class="active" href="/">Главная</a>
-            <a href="#contact">Профиль</a>
+            <a href="{{ url_for('profile') }}">Профиль</a>
             <a href="{{ url_for('login_page') }}">Авторизация</a>
           </div>
         </div>
@@ -24,3 +24,21 @@
         {% block content %}{% endblock %}
     </body>
 </html>
+<style>
+	* {
+		margin: 0;
+	}
+	body{
+		background-color:#e3f2fd;
+	}
+	.header{
+		padding:8px; 
+		background-color: #0d47a1;
+	}
+	.header-right>a:hover{
+		color: #90caf9;
+	}
+	.logo{
+		font-size: 32px;
+	}
+</style>

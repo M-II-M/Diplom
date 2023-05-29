@@ -2,6 +2,8 @@ import whisper
 from docxtpl import DocxTemplate
 import docx
 
+from DocView import DocView
+
 
 class TemplFelling:
     def __init__(self, document, checkpoints, audio):
@@ -59,10 +61,17 @@ class TemplFelling:
             doc.paragraphs[para_id[i] + qwe]._p.addnext(insert_para._p)
             qwe += 1
 
-        doc.save('test.docx')  # Сохраняем промежуточный документ
+        doc.save(self.document[0:-5] + "_for_fill.docx")  # Сохраняем промежуточный документ
 
-        final = DocxTemplate('test.docx')
+        final = DocxTemplate(self.document[0:-5] + "_for_fill.docx")
         context = checkpoints  # Контекст для заполнения чекпоинтов-заголовков
 
         final.render(context)
-        final.save("generated_docx.docx")
+        final.save(self.document[0:-5] + "_generated.docx")
+
+        # сохраняем рабочий шаблон в html
+
+        save_html = DocView(self.document[0:-5] + "_generated.docx")
+        save_html.word2html()
+
+        return self.document[0:-5] + "_generated.docx"
