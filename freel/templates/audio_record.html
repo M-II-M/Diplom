@@ -6,21 +6,24 @@
 <!--<div class="flash {{cat}}">{{msg}}</div>-->
 <!--{% endfor %}-->
 
-    <h1>Хотите записать текст сейчас или у вас есть готовая запись?</h1>
+    <h1 style='text-align:center; width:100%; margin-top: 1%' align="center">Продиктуйте текст, который Вы хотите вставить в документ</h1>
 
-     <div id="controls">
+    <h4  style='text-align:center; width:100%; margin-top: 1%'>Запись не должна длиться болшье 20 минут. Начинайте диктовать параграф с слов
+    "Начало" + название параграфа и заканчивайте словами "Закончить" + название параграфа</h4>
+
+     <div id="controls" style='text-align:center; width:100%; margin-top: 3%'>
   	    <button id="recordButton">Record</button>
   	    <button id="pauseButton" disabled>Pause</button>
   	    <button id="stopButton" disabled>Stop</button>
     </div>
-  	    <p><strong>Recordings:</strong></p>
+  	    <p style='text-align:center; width:100%; margin-top: 2%'><strong>Записанное:</strong></p>
   	    <ol id="recordingsList"></ol>
 
     <script src="{{ url_for('static', filename='js/recorder.js') }}" ></script>
     <script src="{{ url_for('static', filename='js/app.js') }}" ></script>
 
-    <form action="{{ url_for('filling_doc') }}" target="_blank">
-        <button>Перейти к распознаванию</button>
+    <form style='text-align:center; width:100%; margin-top: 4%' action="{{ url_for('filling_doc') }}" target="_blank">
+        <button >Перейти к распознаванию</button>
     </form>
 {% endblock %}
 <style>

@@ -6,16 +6,16 @@
 <div class="flash {{cat}}">{{msg}}</div>
 {% endfor %}
 
-<form action="" method="post" class="form-3">
+<form  action="" method="post" class="form-3">
 {{ form.hidden_tag() }}
     <p class="clearfix">
-        {{ form.login.label() }} {{ form.login() }}
+        <div style='text-align:center; width:100%; margin-top: 2%' class="form">{{ form.login.label() }} {{ form.login() }}</div>
     </p>
-{{ form.password.label() }} {{ form.password() }}
-{{ form.remember.label() }} {{ form.remember() }}
-{{ form.submit() }}
-<hr align=left width="300px">
-<a href="{{url_for('register')}}">Регистрация</a>
+<div style='text-align:center; width:100%; margin-top: 0.5%' class="form">{{ form.password.label() }} {{ form.password() }}</div>
+<div style='text-align:center; width:100%; margin-top: 0.5%' class="form">{{ form.remember.label() }} {{ form.remember() }}</div>
+<div style='text-align:center; width:100%; margin-top: 0.5%' class="form">{{ form.submit() }}</div>
+<div class="form"><hr style='text-align:center; width:100%; margin-top: 0.5%' width="300px"></div>
+<div style='text-align:center; width:100%; margin-top: 0.5%' class="form"><a href="{{url_for('register')}}">Регистрация</a></div>
 </form>
 {% endblock %}
 
@@ -36,5 +36,10 @@
 		top: 45%;
 		-ms-transform: translateY(-50%);
 		transform: translateY(-50%);
+	}
+	.form {
+	    margin-left: auto;
+        margin-right: auto;
+        width: 6em
 	}
 </style>

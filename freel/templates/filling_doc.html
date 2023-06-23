@@ -2,14 +2,18 @@
 
 {% block content %}
 
-<h1>Вы можете отредактировать полученный документ</h1>
+<h1 style='text-align:center; width:100%; margin-top: 1%'>Вы можете отредактировать полученный документ</h1>
 
- <form class="editorForm" action="{{url_for('template_processing', template_type=template_type)}}" method="POST" enctype="multipart/form-data">
+
+ <form style='text-align:center; width:100%; margin-top: 1%' class="editorForm" action="{{url_for('template_processing', template_type=template_type)}}" method="POST" enctype="multipart/form-data">
     {{ form.body() }}
     {{ form.submit() }}
 </form>
  {{ ckeditor.load(pkg_type="full-all") }}
  {{ ckeditor.config(name='body') }}
+
+<h4 style='text-align:left; width:100%; margin-top: 1%'>Ссылка на итоговый документ</h4>
+<a href="/static/test.docx">Скачать документ</a>
 
 {% endblock %}
 <style>

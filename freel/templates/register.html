@@ -8,12 +8,12 @@
 
 <form action="" method="post" class="form-3">
 {{ form.hidden_tag() }}
-{{ form.login.label() }} {{ form.login() }}
-{{ form.password.label() }} {{ form.password() }}
-{{ form.confirm.label() }} {{ form.confirm() }}
-{{ form.submit() }}
+<div style='text-align:center; width:100%; margin-top: 4%'>{{ form.login.label() }} {{ form.login() }}</div>
+<div style='text-align:center; width:100%; margin-top: 0.4%'>{{ form.password.label() }} {{ form.password() }}</div>
+<div style='text-align:center; width:100%; margin-top: 0.4%'>{{ form.confirm.label() }} {{ form.confirm() }}</div>
+<div style='text-align:center; width:100%; margin-top: 0.4%'>{{ form.submit() }}</div>
 
-<hr align=left width="300px">
+<hr style='text-align:center; width:100%; margin-top: 0.5%' width="300px">
 </form>
 
 {% endblock %}
@@ -25,15 +25,5 @@
 	body {
 		background-color:#e3f2fd;
 	}
-	.form-3{
-		background-color:white;
-		width: max-content;
-		padding: 32px;
-		height: max-content;
-		position: relative;
-		margin: 0 auto;
-		top: 45%;
-		-ms-transform: translateY(-50%);
-		transform: translateY(-50%);
-	}
+
 </style>

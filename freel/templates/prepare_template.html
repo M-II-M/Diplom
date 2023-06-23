@@ -6,10 +6,13 @@
 <div class="flash {{cat}}">{{msg}}</div>
 {% endfor %}
 
+<h2 align="center">Пожалуйста, загрузите документ из которого Вы хотите сформировать шаблон</h2>
+<h4 style='text-align:center; width:100%; margin-top: 2%'>После загрузки Вы перейдете на страницу редактирования</h4>
 <form class="prepareTemplateForm" action="{{url_for('upload_prepare_doc')}}" method="POST" enctype="multipart/form-data">
-    <p><input type="file" name="file">
-    <p><input type="submit" value="Загрузить">
+    <p style='text-align:center; width:100%; margin-top: 2%'><input type="file" name="file">
+    <p style='text-align:center; width:100%;'><input type="submit" value="Загрузить">
 </form>
+
 
 {% endblock %}
 

@@ -2,9 +2,13 @@
 
 {% block content %}
 
-<p>{{ desc }}</p>
+<h4 style='text-align:center; width:100%; margin-top: 1%'>{{ desc }}</h4>
 
- <form class="editorForm" action="{{url_for('template_processing', template_type=template_type)}}" method="POST" enctype="multipart/form-data">
+<p style='text-align:center; width:100%; margin-top: 1%'>В шаблоне должны быть выделены зеленым фоном параграфы,
+    которые планируются использоваться как ключевые точки при диктовке
+    и после которых будет вставлен распознанный текст.
+    Загружаемый файл должен иметь разрешение docx.</p>
+ <form style='text-align:center; width:100%; margin-top: 1%' class="editorForm" action="{{url_for('template_processing', template_type=template_type)}}" method="POST" enctype="multipart/form-data">
     {{ form.body() }}
     {{ form.submit() }}
 </form>

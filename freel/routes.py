@@ -3,6 +3,7 @@ import os
 import uuid
 
 from flask import render_template, request, flash, redirect, url_for, session
+from flask import send_from_directory
 from flask_login import login_user, login_required, logout_user, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 
@@ -41,7 +42,15 @@ def profile():
 @login_required
 def ready_template():
     """ Страница при выборе готового шаблона """
-    return render_template("ready_template.html", )
+    user_files = {}
+
+    user_templates = db.session.query(UserTemplates, Files)\
+        .filter(UserTemplates.user_id == current_user.get_id())\
+        .filter(Files.id == UserTemplates.template_id).all()
+
+    for i in user_templates:
+        user_files[i.Files.file_name] = i.Files.path
+    return render_template("ready_template.html", user_files=user_files)
 
 
 @app.route("/prepare_template", methods=["POST", "GET"])
@@ -83,14 +92,15 @@ def filling_doc():
 
     filling.recognize()
     filling.filling_doc()
-
+    #
     view_html = DocView(filling.filling_doc())
     view_html.word2html()
-
+    #
     form = forms.WordViewForm()
     form.body.data = view_html.html
 
-    return render_template("filling_doc.html", checkpoints=session.get('checkpoints'))
+
+    return render_template("filling_doc.html",form=form, checkpoints=session.get('checkpoints'))
 
 
 @app.route('/editor?<template_type>', methods=["POST", "GET"])
